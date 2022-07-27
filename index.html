@@ -5,14 +5,23 @@
 <meta http-equiv="Content-Style-Type" content="text/css">
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <title>Spoken Dialog by Javascript</title>
+<style type ="text/css">
+<!--
+
+body {background-color:#F9CEEE;}
+h1 {background-color:white;}
+-->
+
+</style>
 </head>
 <body>
 
-<h1>音声対話</h1>
+<h1>近畿地方の観光地提案サイト</h1>
+<h2>「（都道府県名）の観光」と話しかけてください
 
 <p>
-<button id="startButton">start</button>
-<button id="stopButton">stop</button>
+<button id="startButton">話しかける</button>
+<button id="stopButton">やめる</button>
 </p>
 
 <p>
@@ -22,15 +31,11 @@
 <script>
 // 応答の定義（ハッシュ）    
 var response = {
-    "あなたは誰":"わたしはアレクサではありません",
-    "名前は":"内緒です",
-    "何歳":"え、わたし、何歳にみえますか",
-    "元気":"元気ですよー",
-    "好きな色":"オレンジです",
-    "夢は":"世界を冒険することです",
-    "好きなスポーツ":"けん玉です",
-    "好きな食べ物":"焼肉です"
-		"好きな食べ物":"焼肉です"
+    "和歌山の観光": ["和歌山県の観光地「アドベンチャーワールド」を表示します", "https://www.aws-s.com/"],
+    "大阪の観光": ["大阪府の観光地「ユニバーサルスタジオジャパン」を表示します", "https://www.usj.co.jp/web/ja/jp"],
+    "京都の観光": ["京都府の観光地「清水寺」を表示します", "https://www.kiyomizudera.or.jp/"],
+    "三重の観光": ["三重県の観光地「志摩スペイン村」を表示します", "https://www.parque-net.com/"],
+    "兵庫の観光": ["兵庫県の観光地「六甲山アスレチックパーク」を表示します", "https://www.rokkosan.com/greenia/"]
 };
 
 const startButton = document.querySelector('#startButton'); // 開始ボタン
@@ -66,14 +71,28 @@ asr.onresult = function(event){
     let output_not_final = '';
     if (event.results[event.resultIndex].isFinal) { // 結果が確定（Final）のとき
 	    asr.abort(); // 音声認識を停止
-	    let answer = response[transcript];
-	
+	    let ret = response[transcript];
+	    
+	    let answer;
+        let webpage;
+        
+
+        if(typeof ret == 'undefined'){
+	        answer = "ごめんなさい。わかりません。";
+    	}else{
+            answer = ret[0];
+            webpage = ret[1];
+        }
+
         output += transcript + ' => ' + answer + '<br>';
 
 	    tts.text = answer;
 	    // 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
 	    tts.onend = function(event){
-	        asr.start(); // 音声認識を再開
+            if(typeof webpage != 'undefined'){
+                location.href = webpage; // ページを移動
+            }   
+            asr.start(); // 音声認識を再開 
 	    }
 
 	    speechSynthesis.speak(tts); // 再生
